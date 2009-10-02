@@ -1,0 +1,204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<meta name="robots" content="index,follow,archive" />
+
+<meta name="keywords" content="xgl,wholegl,opengl,late binding,late linking,late,lazy,lazy loading,library,extension,loading,driver,glu,aliasing,state manager,state change,state switches,performance,redundant,linux,visual,windows,jcayzac,Julien Cayzac,Kamimura,Cayzac,opengl extension,load,automagically,state,switch,catmull rom,catmull" />
+
+<meta name="description" content="XGL - OpenGL driver late binding library" />
+<title>XGL - OpenGL driver late binding library</title>
+<link rel="stylesheet" type="text/css" href="xgl.css" ></link>
+<link rel="stylesheet" type="text/css" href="header.css" media="screen"></link>
+</head>
+<body><div class="header">
+<span class="liner">Fast links»</span>
+<a href="http://www.julien-cayzac.com/">Back to my web site</a>
+</div><div id="contentbox">
+	<div id="header">
+		<h1>XGL: An OpenGL driver late binding library</h1>
+	</div>
+	<p style="color:#800;font-weight:bold;">Last stable release: 0.4 (March, 18th 2002)</p>
+
+	<a name="about"></a>
+	<div class="individualtitle"><h3>About XGL</h3></div>
+
+	<p>XGL has been tested on Linux only but it has been reported to work on Windows as well (using VisualC++ 6 on Windows 98).</p>
+	<h4>Load any OpenGL driver at runtime.</h4>
+	<p>XGL allows your C/C++ program to load an OpenGL driver, and optionaly a GLU library, at runtime.</p>
+	<p>It means you do not have to link with any OpenGL library when you build your executable: it will load them when executed.</p>
+	
+	<h4>OpenGL extensions autoloading &amp; aliasing.</h4>
+	<p>XGL supports capabilities. Instead of querying a certain OpenGL extension, you ask XGL if a certain feature is present using the XGLCheckCapabilities() call.</p>
+	<p>Available extensions are automagically loaded upon XGL initialization.</p>
+	<p>XGL aliases OpenGL extensions' various names. Suppose that XGL reports the "multitexture" to be supported by the loaded driver.
+	You can use the usual OpenGL v1.3 's multitexturing functions such as glActiveTexture() even on OpenGL v1.1.
+	In this case, glActiveTexture is an alias of glActiveTextureARB, which is supported through the ARB_multitexture extension.
+	You don't need to load this extension as it is loaded when XGLInitialize() is called.</p>
+
+	<h4>Low-Level access.</h4>
+	<p>Even when using XGL, you are still able to load extensions that are not (yet) supported by XGL using the XGLGetProcAddress() call.</p>
+	
+	<h4>Boost your performances.</h4>
+	<p style="color:#800;font-weight:bold;">(The following applies to the 0.5 beta only)</p>
+	<p>XGL includes a transparent state manager which drastically reduces state switches, leading to a mesureable performance increase in your applications.</p>
+
+	<a name="shots"></a>
+	<div class="individualtitle"><h3>Screenshots</h3></div>
+	<p style="text-align:center">
+		<a href="xgl_delirium.jpg" title="XGL used in the Delirium demo"><img src="xgl_delirium_thumb.png" alt="XGL used in the Delirium demo"/></a>
+		<a href="xgl_visualstudio.jpg" title="XGL and VisualStudio 6"><img src="xgl_visualstudio_thumb.png" alt="XGL and VisualStudio 6"/></a>
+	</p>
+
+	<a name="usage"></a>
+	<div class="individualtitle"><h3>Usage</h3></div>
+
+	<p>Never include GL/*.h header files by yourself! Only use the provided xgl.h and make xgl.c inside your C/C++ project.</p>
+
+	<h4>Initialising XGL.</h4>
+	<pre>#include "xgl.h"
+...
+// driverName has the form "c:\\somepath\\driver.dll" on Windows
+// and "/some/path/driver.so" on unix.
+GLboolean init = XGLInitialize(driverName, gluName);
+if (init==GL_FALSE) {
+	...error &amp; quit...
+}
+
+// Do your OpenGL context setup here. You cannot call
+// XGLCheckCapabilities() unless you have a valid context.
+...
+// Get capabilities
+XGLcaps caps;
+XGLCheckCapabilities(&amp;caps);
+</pre>
+	<p>Feature aliasing example: If caps.multitexture's value is GL_TRUE, you can call glActiveTexture() even on OpenGL v1.1 as explained before.</p>
+
+	<h4>Loading yet-unsupported OpenGL/WGL/GLX extensions.</h4>
+	<p>This exemple assume a fictional "Torque" extension exists, and we want to use its glTorquePointer() function.</p>
+	<pre>// You have to declare this at top-level scope
+typedef void (__xglapi * glTorquePointer_fptr)(GLenum, GLsizei, GLsizei, GLvoid*);
+extern glTorquePointer_fptr glTorquePointer;
+// Now you can load the pointer somewhere in your init code:
+glTorquePointer = (glTorquePointer_fptr) XGLGetProcAddress("glTorquePointer");
+// And later use the function:
+glTorquePointer(GL_RIGID_BODY_TORQUE, num_torques, stride, torques);
+</pre>
+
+	<h4>Closing the driver.</h4>
+	<pre>XGLShutdown();
+</pre>
+
+	<h4>State Manager (0.5 beta only).</h4>
+	<p>The new state manager hijacks glEnable(), glDisable(), and glIsEnabled() functions and makes redundant state changes virtually impossible.</p>
+	<p>Enabling the otherwise disabled state manager using XGLHint():</p>
+	<pre>XGLHint(XGL_STATES_MANAGER_HINT);
+</pre>
+	<p>The following function can be called in order to make a full update of the state manager's internal table based on current OpenGL states:</p>
+	<pre>XGLSynchronizeStates();
+</pre>
+	<p>It is intended for self-debugging only as it should be totally useless: the state manager is meant to do this work transparently!</p>
+
+
+	<a name="demo"></a>
+	<div class="individualtitle"><h3>Demonstration</h3></div>
+	<p><img src="liquid/liquid_thumb.png" alt="Screenshot" style="float:right;"/>I have done a small demonstration for Linux using XGL: <a href="http://blog.brainlex.com/2002/04/liquid-demo-for-xgl.html">Liquid</a>.<div style="clear:both;">&nbsp;</div></p>
+
+	<a name="license"></a>
+	<div class="individualtitle"><h3>License</h3></div>
+
+	<p>XGL is shipped under the terms of the following license</p>
+<pre>Copyright (c) 2002, Julien Cayzac &lt;julien.cayzac 'at' gmail.com&gt;
+All rights reserved.
+
+Redistribution  and  use   in  source  and  binary  forms,  with   or   without
+modification,  are   permitted   provided   that   the   following   conditions
+are met:
+
+* Redistributions of  source code must retain the above  copyright notice, this
+list of conditions and the following disclaimer.
+
+* Redistributions  in binary form  must reproduce  the above  copyright notice,
+this list  of conditions  and the  following  disclaimer  in the  documentation
+and/or other materials provided with the distribution.
+
+* Neither  the  name  of  XGL  nor  the  names  of  its  contributors  may
+be  used to  endorse or promote  products  derived from  this software  without
+specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED  WARRANTIES, INCLUDING, BUT NOT  LIMITED TO, THE IMPLIED
+WARRANTIES  OF  MERCHANTABILITY  AND  FITNESS  FOR  A  PARTICULAR  PURPOSE  ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,  EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT  LIMITED TO, PROCUREMENT  OF SUBSTITUTE  GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS  INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY  OF  LIABILITY,  WHETHER  IN  CONTRACT,  STRICT  LIABILITY, OR  TORT
+(INCLUDING NEGLIGENCE  OR  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</pre>
+	<h4>Questions? Bug reports?</h4>
+	<p>Please use <a href="http://sourceforge.net/tracker/?group_id=48845" rel="external">the bug tracker</a> and
+	<a href="http://sourceforge.net/forum/forum.php?forum_id=160596" rel="external">the open discussion</a> available at Sourceforge.net.</p>
+	<a name="legacy"></a>
+        <div class="individualtitle"><h3>Legacy versions</h3></div>
+	<p>Anyone interested in previous versions of XGL (formerly called WholeGL), if such person actually existed, could find them below.</p>
+	<ul>
+		<li><a href="legacy/WholeGL-0.3.tar.gz">WholeGL 0.3</a> (40KB) [<a rel="external" href="http://blog.brainlex.com/2002/03/wholegl-03-is-out.html">announce</a>]</li>
+		<li><a href="legacy/WholeGL-0.2.tar.gz">WholeGL 0.2</a> (30KB) [<a rel="external" href="http://blog.brainlex.com/2002/03/wholegl-automatic-extension-loader.html">announce</a>]</li>
+	</ul>
+
+<div class="copy">
+© 2002-2007 Julien Cayzac. The total or partial reproduction of this site without permission is forbidden.
+</div>
+</div><div id="sidebar">
+	<div class="sidebarcontent">
+		<p>
+		<a href="http://sourceforge.net/project/showfiles.php?group_id=48845&amp;package_id=42034" title="Download"><img src="icons/download.png" alt="Download"/> Download Now!</a><br/>
+		</p>
+
+		<h4>XGL</h4>
+		<p>
+		<a href="#about">About</a><br/>
+		<a href="#shots">Screenshots</a><br/>
+		<a href="#usage">Usage</a><br/>
+		<a href="#demo">Demonstration</a><br/>
+		<a href="#license">License</a><br/>
+		<a href="http://sourceforge.net/tracker/?group_id=48845" rel="external">Bug tracker</a><br/>
+		<a href="http://sourceforge.net/forum/forum.php?forum_id=160596" rel="external">Forums</a><br/>
+		<a href="http://blog.brainlex.com/search/label/XGL" rel="external">Blog</a><br/>
+		<a href="#legacy">Legacy versions</a><br/>
+		</p>
+
+		<h4>Search</h4>
+		<div id="search">
+			<form method="get" action="http://www.google.com/search"><p>
+					<input name="q" value="..." id="googlebox" class="searchbox" onfocus="if(this.value=='...') {this.value='';}" onblur="if(this.value=='') {this.value='...';}" type="text"/><input name="btnG" value="Search" style="display: none;" type="submit"/><input name="sitesearch" value="www.julien-cayzac.com/code/xgl/" type="hidden"/>
+			</p></form>
+		</div>
+		<!-- iframe src="http://rcm.amazon.com/e/cm?t=julicayz-20&o=1&p=8&l=as1&asins=0201398559&fc1=FFFFFF&IS2=1&lt1=_blank&lc1=FFFFFF&bc1=505050&bg1=505050&f=ifr&npa=1" style="width:120px;height:240px;" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe><br/ -->
+		<script type="text/javascript"><!--
+		google_ad_client = "pub-7803804297763744";
+		google_ad_width = 120;
+		google_ad_height = 600;
+		google_ad_format = "120x600_as";
+		google_ad_type = "text";
+		//2007-02-10: jcayzac.brainlex.com
+		google_ad_channel = "9890439549";
+		google_color_border = "000000";
+		google_color_bg = "505050";
+		google_color_link = "ffffff";
+		google_color_text = "eeeeee";
+		google_color_url = "ffffff";
+		//--></script>
+		<script type="text/javascript"
+		src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+		</script>
+		<br/>
+		<p><img src="sf.png" alt="SourceForge logo"/></p>
+
+	</div>
+
+</div>
+</body></html>

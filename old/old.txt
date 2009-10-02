@@ -1,0 +1,12 @@
+XGL is a static library. It makes using OpenGL easier, as it dynamically loads
+any OpenGL driver and GLU library at runtime, loads every single OpenGL
+extension automatically, performs function aliasing on deprecated unmodified
+extensions versions, and has an OpenGL states manager (in the
+development/unstable release) which increase performances.
+
+Download XGL 0.4 for Unix and Win32 (.tar.gz archive).
+You can also get XGL 0.5-dev, the current "not-so-much-tested" development
+version. New: transparent OpenGL states manager (WARNING: enabling it on a
+Win32 platform has been reported to crash the application. I must investigate
+that).
+

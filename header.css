@@ -1,0 +1,36 @@
+div.header {
+	margin-top:0px;
+	margin-left:0px;
+	margin-right:0px;
+	padding:4px 4px 4px 4px;
+	background-color:#555;
+	color:#fff;
+	border:0;
+	border-bottom:1px solid #fff;
+	font-size:0.8em;
+	font-family:"Tahoma","Trebuchet MS",verdana,arial,sans-serif;
+	font-weight:bolder;
+	line-height:0.8em;
+	height:1em;
+	z-index:3;
+}
+body>div.header{
+	position: fixed;
+	width:100%;
+	overflow:hidden;
+}
+div.header a {
+	margin-left:1em;
+	color:#fff;
+	background-color:#555;
+}
+div.header a:hover {
+	margin-left:1em;
+	color:#fff;
+	background-color:#555;
+	text-decoration:underline;
+}
+.liner {
+	font-weight:bold;
+	color:#8bf;
+}
